@@ -1,8 +1,4 @@
 <?php
-/**
- * API de Gestão de Estoque
- * ENTREGA 7 - Movimentação de Estoque
- */
 
 header('Content-Type: application/json; charset=utf-8');
 session_start();
@@ -10,11 +6,18 @@ session_start();
 require_once '../config/database.php';
 require_once '../includes/auth.php';
 
-// Verifica autenticação
 if (!estaLogado()) {
     echo json_encode(['sucesso' => false, 'mensagem' => 'Não autenticado']);
     exit();
 }
+
+// Funções de utilidade para conversão de valores (Não usada no fluxo principal, mas mantida)
+function formatarValorParaBanco($valor) {
+    $valorLimpo = str_replace(['R$', '.'], '', $valor);
+    $valorBanco = str_replace(',', '.', $valorLimpo);
+    return is_numeric($valorBanco) ? (float)$valorBanco : 0.00;
+}
+
 
 $conn = getConnection();
 $acao = $_GET['acao'] ?? $_POST['acao'] ?? '';
@@ -40,15 +43,17 @@ switch ($acao) {
         echo json_encode(['sucesso' => false, 'mensagem' => 'Ação inválida']);
 }
 
-$conn->close();
+// Fechamento da conexão
+if ($conn instanceof mysqli && $conn->ping()) {
+    $conn->close();
+}
 
-/**
- * Lista todos os produtos com informações de estoque
- */
+
 function listarProdutos($conn) {
-    $sql = "SELECT id_produto, nome, categoria, material, quantidade_estoque, estoque_minimo 
-            FROM produtos 
-            ORDER BY nome";
+    // Garantindo que valor_unitario seja incluído
+    $sql = "SELECT id_produto, nome, categoria, material, quantidade_estoque, estoque_minimo, valor_unitario 
+             FROM produtos 
+             ORDER BY nome";
     
     $result = $conn->query($sql);
     
@@ -60,12 +65,10 @@ function listarProdutos($conn) {
     echo json_encode(['sucesso' => true, 'produtos' => $produtos]);
 }
 
-/**
- * Retorna informações detalhadas de um produto
- */
 function infoProduto($conn) {
     $id = $_GET['id'] ?? 0;
     
+    // SELECT * incluirá valor_unitario
     $sql = "SELECT * FROM produtos WHERE id_produto = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param('i', $id);
@@ -82,10 +85,6 @@ function infoProduto($conn) {
     $stmt->close();
 }
 
-/**
- * Registra movimentação de estoque (entrada ou saída)
- * REQUISITO 7.1.2, 7.1.3, 7.1.4
- */
 function registrarMovimentacao($conn) {
     $id_produto = intval($_POST['id_produto'] ?? 0);
     $tipo_movimentacao = $_POST['tipo_movimentacao'] ?? '';
@@ -94,6 +93,9 @@ function registrarMovimentacao($conn) {
     $observacao = trim($_POST['observacao'] ?? '');
     $id_usuario = getUsuarioId();
     
+    // CAPTURA DO NOVO CAMPO DE CUSTO
+    $valor_total = floatval($_POST['valor_total'] ?? 0.00); 
+
     // Validações
     if ($id_produto <= 0) {
         echo json_encode(['sucesso' => false, 'mensagem' => 'Produto não selecionado']);
@@ -114,8 +116,14 @@ function registrarMovimentacao($conn) {
         echo json_encode(['sucesso' => false, 'mensagem' => 'Data da movimentação é obrigatória']);
         return;
     }
+
+    // Validação do valor total
+    if ($valor_total <= 0) {
+        echo json_encode(['sucesso' => false, 'mensagem' => 'Valor total da movimentação deve ser maior que zero']);
+        return;
+    }
     
-    // Busca produto atual
+    // Busca informações do produto
     $sqlProduto = "SELECT nome, quantidade_estoque, estoque_minimo FROM produtos WHERE id_produto = ?";
     $stmtProduto = $conn->prepare($sqlProduto);
     $stmtProduto->bind_param('i', $id_produto);
@@ -129,16 +137,15 @@ function registrarMovimentacao($conn) {
     }
     
     $produto = $resultProduto->fetch_assoc();
-    $estoque_atual = $produto['quantidade_estoque'];
-    $estoque_minimo = $produto['estoque_minimo'];
+    $estoque_atual = intval($produto['quantidade_estoque']);
+    $estoque_minimo = intval($produto['estoque_minimo']);
     $nome_produto = $produto['nome'];
     $stmtProduto->close();
     
-    // Calcula novo estoque
+    // Calcula novo estoque e verifica saída
     if ($tipo_movimentacao === 'entrada') {
         $novo_estoque = $estoque_atual + $quantidade;
     } else {
-        // Verifica se há estoque suficiente para saída
         if ($estoque_atual < $quantidade) {
             echo json_encode([
                 'sucesso' => false, 
@@ -149,22 +156,22 @@ function registrarMovimentacao($conn) {
         $novo_estoque = $estoque_atual - $quantidade;
     }
     
-    // Inicia transação
     $conn->begin_transaction();
     
     try {
-        // Registra movimentação
-        $sqlMov = "INSERT INTO movimentacoes (id_produto, id_usuario, tipo_movimentacao, quantidade, data_movimentacao, observacao) 
-                   VALUES (?, ?, ?, ?, ?, ?)";
+        // CORREÇÃO: Adicionando valor_total no INSERT
+        $sqlMov = "INSERT INTO movimentacoes (id_produto, id_usuario, tipo_movimentacao, quantidade, valor_total, data_movimentacao, observacao) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?)";
         $stmtMov = $conn->prepare($sqlMov);
-        $stmtMov->bind_param('iisiss', $id_produto, $id_usuario, $tipo_movimentacao, $quantidade, $data_movimentacao, $observacao);
+        // Binding: i (id_produto), i (id_usuario), s (tipo), i (quantidade), d (valor_total), s (data), s (observacao)
+        $stmtMov->bind_param('iisidss', $id_produto, $id_usuario, $tipo_movimentacao, $quantidade, $valor_total, $data_movimentacao, $observacao);
         
         if (!$stmtMov->execute()) {
-            throw new Exception('Erro ao registrar movimentação');
+            throw new Exception('Erro ao registrar movimentação: ' . $stmtMov->error);
         }
         $stmtMov->close();
-        
-        // Atualiza estoque do produto
+
+        // Atualização de estoque
         $sqlUpdate = "UPDATE produtos SET quantidade_estoque = ? WHERE id_produto = ?";
         $stmtUpdate = $conn->prepare($sqlUpdate);
         $stmtUpdate->bind_param('ii', $novo_estoque, $id_produto);
@@ -173,11 +180,9 @@ function registrarMovimentacao($conn) {
             throw new Exception('Erro ao atualizar estoque');
         }
         $stmtUpdate->close();
-        
-        // Commit da transação
+
         $conn->commit();
-        
-        // Verifica se estoque ficou abaixo do mínimo (REQUISITO 7.1.4)
+
         $alerta_estoque = ($tipo_movimentacao === 'saida' && $novo_estoque <= $estoque_minimo);
         
         $response = [
@@ -195,22 +200,19 @@ function registrarMovimentacao($conn) {
         echo json_encode($response);
         
     } catch (Exception $e) {
-        // Rollback em caso de erro
         $conn->rollback();
-        echo json_encode(['sucesso' => false, 'mensagem' => $e->getMessage()]);
+        echo json_encode(['sucesso' => false, 'mensagem' => 'Falha na transação: ' . $e->getMessage()]);
     }
 }
 
-/**
- * Retorna histórico de movimentações
- */
 function historicoMovimentacoes($conn) {
+    // CORREÇÃO: Incluindo m.valor_total no SELECT
     $sql = "SELECT m.*, p.nome as produto_nome, u.nome as usuario_nome 
-            FROM movimentacoes m
-            INNER JOIN produtos p ON m.id_produto = p.id_produto
-            INNER JOIN usuarios u ON m.id_usuario = u.id_usuario
-            ORDER BY m.data_registro DESC
-            LIMIT 20";
+             FROM movimentacoes m
+             INNER JOIN produtos p ON m.id_produto = p.id_produto
+             INNER JOIN usuarios u ON m.id_usuario = u.id_usuario
+             ORDER BY m.data_registro DESC
+             LIMIT 20";
     
     $result = $conn->query($sql);
     

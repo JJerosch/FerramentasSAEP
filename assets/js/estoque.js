@@ -1,9 +1,47 @@
 /**
  * JavaScript para Gestão de Estoque
- * ENTREGA 7 - Movimentação de Estoque
+ * ENTREGA 7 - Movimentação de Estoque (MODIFICADO PARA CUSTOS)
  */
 
-let produtoSelecionado = null;
+let produtoSelecionado = null; // Armazenará o objeto completo do produto, incluindo valor_unitario
+
+// --- FUNÇÕES DE UTILIDADE MONETÁRIA/CÁLCULO ---
+
+/**
+ * Formata um número decimal para o formato monetário brasileiro (R$ X.XXX,XX)
+ */
+function formatarParaReal(valor) {
+    if (valor === null || valor === undefined || isNaN(parseFloat(valor))) {
+        return 'R$ 0,00';
+    }
+    // O valor vindo do PHP já é um float/string decimal (ex: "10.50")
+    return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+    }).format(parseFloat(valor));
+}
+
+/**
+ * Calcula e exibe o valor total da movimentação
+ */
+function calcularValorTotal() {
+    const quantidade = parseFloat(document.getElementById('quantidade').value) || 0;
+    
+    // Pega o valor unitário armazenado no produtoSelecionado (já é um float)
+    const valorUnitario = produtoSelecionado && produtoSelecionado.valor_unitario 
+        ? parseFloat(produtoSelecionado.valor_unitario) 
+        : 0;
+
+    const valorTotal = quantidade * valorUnitario;
+    
+    // Atualiza o campo de exibição (somente leitura)
+    document.getElementById('valor_total_display').value = formatarParaReal(valorTotal);
+    
+    // Atualiza o campo hidden que será enviado para a API (formato numérico)
+    document.getElementById('valorTotalInput').value = valorTotal.toFixed(2);
+}
+
+// ---------------------------------------------
 
 // Carrega dados ao iniciar
 document.addEventListener('DOMContentLoaded', function() {
@@ -18,7 +56,19 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         registrarMovimentacao();
     });
+
+    // Event listener para o campo Quantidade e Tipo (para recalcular o Valor Total)
+    document.getElementById('quantidade').addEventListener('input', calcularValorTotal);
+    
+    document.querySelectorAll('input[name="tipo_movimentacao"]').forEach(radio => {
+        radio.addEventListener('change', calcularValorTotal); 
+    });
+
+    // Inicializa o valor total como zero
+    calcularValorTotal();
 });
+
+// --- FUNÇÕES DE CARREGAMENTO E RENDERIZAÇÃO ---
 
 /**
  * Carrega e ordena produtos alfabeticamente
@@ -44,7 +94,6 @@ function carregarProdutos() {
 
 /**
  * Algoritmo Bubble Sort para ordenação alfabética
- * REQUISITO 7.1.1 - Implementação de algoritmo de ordenação
  */
 function bubbleSort(array) {
     const arr = [...array];
@@ -53,7 +102,6 @@ function bubbleSort(array) {
     for (let i = 0; i < n - 1; i++) {
         for (let j = 0; j < n - i - 1; j++) {
             if (arr[j].nome.toLowerCase() > arr[j + 1].nome.toLowerCase()) {
-                // Troca elementos
                 const temp = arr[j];
                 arr[j] = arr[j + 1];
                 arr[j + 1] = temp;
@@ -65,7 +113,7 @@ function bubbleSort(array) {
 }
 
 /**
- * Renderiza lista de produtos
+ * Renderiza lista de produtos (CORRIGIDO PARA USO DE DATA-ATTRIBUTE)
  */
 function renderizarProdutos(produtos) {
     const container = document.getElementById('listaProdutos');
@@ -80,8 +128,13 @@ function renderizarProdutos(produtos) {
         const badgeClass = estoqueBaixo ? 'badge-danger' : 'badge-success';
         const badgeText = estoqueBaixo ? 'Estoque Baixo' : 'Estoque OK';
         
+        // CORREÇÃO DE CLIQUE: Serializa o objeto completo e escapa as aspas para o HTML
+        const produtoJsonString = JSON.stringify(produto).replace(/"/g, '&quot;'); 
+
         return `
-            <div class="produto-item" onclick="selecionarProduto(${produto.id_produto}, '${produto.nome.replace(/'/g, "\\'")}')">
+            <div class="produto-item" 
+                 data-produto="${produtoJsonString}" 
+                 onclick="selecionarProduto(this)">  
                 <div class="produto-info">
                     <div>
                         <div class="produto-nome">${produto.nome}</div>
@@ -98,29 +151,44 @@ function renderizarProdutos(produtos) {
     }).join('');
 }
 
+
 /**
- * Seleciona um produto para movimentação
- * REQUISITO 7.1.2 - Seleção de produto e tipo de movimentação
+ * Seleciona um produto para movimentação (CORRIGIDO PARA USO DE DATA-ATTRIBUTE)
+ * @param {HTMLElement} element - O elemento DIV.produto-item clicado (passado via 'this').
  */
-function selecionarProduto(id, nome) {
+function selecionarProduto(element) {
     // Remove seleção anterior
     document.querySelectorAll('.produto-item').forEach(item => {
         item.classList.remove('selecionado');
     });
     
     // Adiciona classe ao item selecionado
-    event.currentTarget.classList.add('selecionado');
+    element.classList.add('selecionado');
     
-    // Armazena produto selecionado
-    produtoSelecionado = id;
+    // Recupera a string JSON do atributo e a deserializa
+    const produtoJsonString = element.getAttribute('data-produto').replace(/&quot;/g, '"');
+    const produto = JSON.parse(produtoJsonString);
+
+    // Armazena o objeto completo do produto
+    produtoSelecionado = produto;
     
     // Atualiza formulário
-    document.getElementById('produtoSelecionadoId').value = id;
-    document.getElementById('produtoSelecionadoNome').textContent = nome;
-    document.getElementById('formMovimentacao').classList.add('ativo');
+    document.getElementById('produtoSelecionadoId').value = produto.id_produto;
+    document.getElementById('produtoSelecionadoNome').textContent = produto.nome;
+
+    // Armazena o valor unitário no campo oculto para referência
+    document.getElementById('produtoSelecionadoValorUnitario').value = produto.valor_unitario;
+
+    // Recalcula o valor total
+    calcularValorTotal();
+
+    const formContainer = document.getElementById('formMovimentacao');
+    if (formContainer) {
+        formContainer.classList.add('ativo');
+    }
     
     // Carrega informações detalhadas do produto
-    carregarInfoProduto(id);
+    carregarInfoProduto(produto.id_produto);
 }
 
 /**
@@ -130,6 +198,7 @@ function carregarInfoProduto(id) {
     fetch(`../api/estoque_api.php?acao=info_produto&id=${id}`)
         .then(response => response.json())
         .then(data => {
+            const infoProdutoCard = document.getElementById('infoProduto');
             if (data.sucesso) {
                 const p = data.produto;
                 const estoqueBaixo = parseInt(p.quantidade_estoque) <= parseInt(p.estoque_minimo);
@@ -153,18 +222,26 @@ function carregarInfoProduto(id) {
                         ${p.peso ? `<div><strong>Peso:</strong> ${p.peso} kg</div>` : ''}
                     </div>
                 `;
-                document.getElementById('infoProduto').style.display = 'block';
+                
+                // Exibe o valor unitário
+                document.getElementById('infoValorUnitario').textContent = formatarParaReal(p.valor_unitario);
+
+                infoProdutoCard.style.display = 'block';
+
+                produtoSelecionado = p;
+
+            } else {
+                infoProdutoCard.style.display = 'none';
             }
         })
         .catch(error => {
             console.error('Erro ao carregar informações:', error);
+            document.getElementById('infoProduto').style.display = 'none';
         });
 }
 
 /**
  * Registra movimentação de estoque
- * REQUISITO 7.1.3 - Registro de movimentação com data
- * REQUISITO 7.1.4 - Verificação de estoque mínimo
  */
 function registrarMovimentacao() {
     if (!validarFormulario()) {
@@ -173,6 +250,11 @@ function registrarMovimentacao() {
     
     const formData = new FormData(document.getElementById('formMov'));
     formData.append('acao', 'registrar_movimentacao');
+    
+    // Desabilita o botão para evitar cliques múltiplos
+    const submitButton = document.querySelector('#formMov button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.textContent = 'Registrando...';
     
     fetch('../api/estoque_api.php', {
         method: 'POST',
@@ -191,12 +273,15 @@ function registrarMovimentacao() {
             // Limpa formulário e recarrega dados
             document.getElementById('formMov').reset();
             document.getElementById('data_movimentacao').valueAsDate = new Date();
+
+            document.getElementById('valor_total_display').value = formatarParaReal(0);
+            document.getElementById('valorTotalInput').value = '0.00';
+            
             carregarProdutos();
             carregarHistorico();
             
-            // Recarrega informações do produto se ainda selecionado
             if (produtoSelecionado) {
-                carregarInfoProduto(produtoSelecionado);
+                carregarInfoProduto(produtoSelecionado.id_produto);
             }
         } else {
             mostrarMensagem('Erro: ' + data.mensagem, 'danger');
@@ -205,6 +290,11 @@ function registrarMovimentacao() {
     .catch(error => {
         mostrarMensagem('Erro ao conectar com o servidor', 'danger');
         console.error('Erro:', error);
+    })
+    .finally(() => {
+        // Reabilita o botão
+        submitButton.disabled = false;
+        submitButton.textContent = 'Registrar Movimentação';
     });
 }
 
@@ -215,30 +305,52 @@ function validarFormulario() {
     const tipo = document.querySelector('input[name="tipo_movimentacao"]:checked');
     const quantidade = document.getElementById('quantidade').value;
     const data = document.getElementById('data_movimentacao').value;
-    
+    const valorTotal = parseFloat(document.getElementById('valorTotalInput').value) || 0; 
+
+    if (!produtoSelecionado) {
+        mostrarMensagem('Selecione um produto para movimentar', 'warning');
+        return false;
+    }
+
     if (!tipo) {
         mostrarMensagem('Selecione o tipo de movimentação', 'warning');
         return false;
     }
     
-    if (!quantidade || quantidade <= 0) {
+    if (!quantidade || parseFloat(quantidade) <= 0) {
         mostrarMensagem('A quantidade deve ser maior que zero', 'warning');
         document.getElementById('quantidade').focus();
         return false;
     }
     
+    if (valorTotal <= 0) {
+        mostrarMensagem('O valor total da movimentação deve ser maior que zero (verifique o valor unitário do produto e a quantidade)', 'warning');
+        return false;
+    }
+
     if (!data) {
         mostrarMensagem('Informe a data da movimentação', 'warning');
         document.getElementById('data_movimentacao').focus();
         return false;
     }
     
+    // Validação extra para SAÍDA: verificar se há estoque suficiente
+    if (tipo.value === 'saida') {
+        const estoqueAtual = parseInt(produtoSelecionado.quantidade_estoque) || 0;
+        const quantidadeSaida = parseInt(quantidade) || 0;
+        
+        if (quantidadeSaida > estoqueAtual) {
+            mostrarMensagem(`Estoque insuficiente! Você está tentando retirar ${quantidadeSaida} unidades, mas há apenas ${estoqueAtual} em estoque.`, 'warning');
+            document.getElementById('quantidade').focus();
+            return false;
+        }
+    }
+
     return true;
 }
 
 /**
  * Exibe alerta de estoque baixo
- * REQUISITO 7.1.4 - Alerta automático de estoque baixo
  */
 function mostrarAlertaEstoqueBaixo(produto, estoqueAtual, estoqueMinimo) {
     const alerta = `
@@ -252,9 +364,8 @@ function mostrarAlertaEstoqueBaixo(produto, estoqueAtual, estoqueMinimo) {
     `;
     
     const div = document.getElementById('mensagemFeedback');
-    div.innerHTML = alerta + div.innerHTML;
+    div.insertAdjacentHTML('afterbegin', alerta);
     
-    // Scroll para o alerta
     div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
@@ -267,9 +378,12 @@ function carregarHistorico() {
         .then(data => {
             if (data.sucesso) {
                 renderizarHistorico(data.movimentacoes);
+            } else {
+                 document.getElementById('historicoMovimentacoes').innerHTML = '<p class="text-center alert alert-danger">Erro ao carregar histórico.</p>';
             }
         })
         .catch(error => {
+             document.getElementById('historicoMovimentacoes').innerHTML = '<p class="text-center alert alert-danger">Falha na comunicação com o servidor.</p>';
             console.error('Erro ao carregar histórico:', error);
         });
 }
@@ -286,9 +400,10 @@ function renderizarHistorico(movimentacoes) {
     }
     
     container.innerHTML = movimentacoes.map(mov => {
-        const icone = mov.tipo_movimentacao === 'entrada' ? '' : '';
+        const icone = mov.tipo_movimentacao === 'entrada' ? '⬆️' : '⬇️';
         const tipoTexto = mov.tipo_movimentacao === 'entrada' ? 'Entrada' : 'Saída';
-        
+        const valorFormatado = formatarParaReal(mov.valor_total); // Formata o valor
+
         return `
             <div class="historico-item ${mov.tipo_movimentacao}">
                 <div style="display: flex; justify-content: space-between; align-items: start;">
@@ -298,6 +413,7 @@ function renderizarHistorico(movimentacoes) {
                         </div>
                         <div style="font-size: 0.875rem; color: #64748b;">
                             Quantidade: <strong>${mov.quantidade}</strong> unidades<br>
+                            Valor Total: <strong>${valorFormatado}</strong><br>
                             Data: ${formatarData(mov.data_movimentacao)}<br>
                             Responsável: ${mov.usuario_nome}
                             ${mov.observacao ? `<br>Obs: ${mov.observacao}` : ''}
@@ -335,16 +451,14 @@ function mostrarMensagem(mensagem, tipo) {
     const div = document.getElementById('mensagemFeedback');
     const alertaHtml = `<div class="alert alert-${tipo}">${mensagem}</div>`;
     
-    div.innerHTML = alertaHtml + div.innerHTML;
+    div.insertAdjacentHTML('afterbegin', alertaHtml);
     
-    // Remove mensagens antigas após 5 segundos
     setTimeout(() => {
-        const alertas = div.querySelectorAll('.alert');
-        if (alertas.length > 3) {
-            alertas[alertas.length - 1].remove();
+        const primeiroAlerta = div.querySelector('.alert:not(.alert-warning)');
+        if (primeiroAlerta && primeiroAlerta.textContent.includes(mensagem)) {
+             primeiroAlerta.remove();
         }
     }, 5000);
     
-    // Scroll para a mensagem
     div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }

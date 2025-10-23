@@ -48,11 +48,14 @@ $conn->close();
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
-    <div class="header">
+<div class="header">
         <div class="header-content">
             <h1>Sistema de Gestão de Estoque</h1>
             <div class="user-info">
-                <span class="user-name"> <?php echo htmlspecialchars(getUsuarioNome()); ?></span>
+                <div class="user-details">
+                    <span class="user-name"> <?php echo htmlspecialchars(getUsuarioNome()); ?> : </span>
+                    <span class="user-role">(<?php echo strtoupper(htmlspecialchars(getNivelAcesso())); ?>)</span>
+                </div>
                 <a href="../api/logout.php" class="btn btn-secondary btn-sm">Sair</a>
             </div>
         </div>
@@ -128,21 +131,20 @@ $conn->close();
             </a>
         </div>
 
+        <?php if (getNivelAcesso() === 'admin'): ?>
         <h3 class="mt-3 mb-2">Gestão de Usuários</h3>
-        <div class="nav-grid">
-            <a href="usuarios.php" class="nav-card">
-                <div class="nav-icon" style="color: var(--text-color);"></div>
-                <h3>Cadastro de Usuários</h3>
-                <p class="text-light-p">Adicionar e gerenciar contas</p>
-            </a>
-            
-            <div class="nav-card" style="cursor: default;">
-                <div class="nav-icon" style="color: var(--text-color);"></div>
-                <h3>Usuários Ativos</h3>
-                <p class="text-light-p">Total de usuários no sistema</p>
-                <div style="font-size: 2rem; font-weight: 700; color: var(--text-color); margin-top: 0.5rem;"><?php echo $totalUsuarios; ?></div>
+            <div class="nav-grid">
+                <a href="usuarios.php" class="nav-card">
+                    <h3>Cadastro de Usuários</h3>
+                    <p class="text-light-p">Adicionar e gerenciar contas</p>
+                </a>
+                <div class="nav-card" style="cursor: default;">
+                    <h3>Usuários</h3>
+                    <p class="text-light-p">Total de usuários no sistema</p>
+                    <div style="font-size: 2rem; font-weight: 700; color: var(--text-color); margin-top: 0.5rem;"><?php echo $totalUsuarios; ?></div>
+                </div>
             </div>
-        </div>
+        <?php endif; ?>
     </div>
 </body>
 </html>

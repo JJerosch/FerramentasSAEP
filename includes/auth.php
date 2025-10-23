@@ -11,12 +11,21 @@ if (session_status() === PHP_SESSION_NONE) {
 
 /**
  * Verifica se o usuário está autenticado
+ * @param bool $sair Se true, o script é encerrado (útil para APIs)
  * Redireciona para login se não estiver
  */
-function verificarAutenticacao() {
+function verificarAutenticacao($sair = false) {
     if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['usuario_nome'])) {
-        header('Location: login.php');
-        exit();
+        if ($sair) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Não autorizado. Faça login.']);
+            exit();
+        } else {
+            // Se estiver em um subdiretório, o caminho pode mudar. 
+            // Usamos caminho relativo, mas 'login.php' deve estar na raiz.
+            header('Location: login.php'); 
+            exit();
+        }
     }
 }
 
@@ -42,6 +51,15 @@ function getUsuarioNome() {
  */
 function getUsuarioEmail() {
     return $_SESSION['usuario_email'] ?? null;
+}
+
+/**
+ * Retorna o nível de acesso do usuário logado (admin, estoquista)
+ * ESTA É A NOVA FUNÇÃO NECESSÁRIA PARA O DASHBOARD
+ * @return string|null
+ */
+function getNivelAcesso() {
+    return $_SESSION['usuario_nivel_acesso'] ?? null;
 }
 
 /**

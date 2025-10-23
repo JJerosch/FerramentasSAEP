@@ -1,6 +1,6 @@
 <?php
 /**
- * ENTREGA 7 - Interface de Gestão de Estoque
+ * ENTREGA 7 - Interface de Gestão de Estoque (MODIFICADA PARA CUSTOS)
  */
 
 require_once '../includes/auth.php';
@@ -18,12 +18,14 @@ verificarAutenticacao();
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
-    <!-- Cabeçalho -->
     <div class="header">
         <div class="header-content">
             <h1>Sistema de Gestão de Estoque</h1>
             <div class="user-info">
-                <span class="user-name"> <?php echo htmlspecialchars(getUsuarioNome()); ?></span>
+                <div class="user-details">
+                    <span class="user-name"> <?php echo htmlspecialchars(getUsuarioNome()); ?> : </span>
+                    <span class="user-role"> <?php echo strtoupper(htmlspecialchars(getNivelAcesso())); ?></span>
+                </div>
                 <a href="../api/logout.php" class="btn btn-secondary btn-sm">Sair</a>
             </div>
         </div>
@@ -34,11 +36,9 @@ verificarAutenticacao();
             <a href="dashboard.php" class="btn btn-secondary">← Voltar ao Dashboard</a>
         </div>
         
-        <!-- Mensagens de Feedback -->
         <div id="mensagemFeedback"></div>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-            <!-- Lista de Produtos -->
             <div class="card">
                 <h3 class="card-title">Produtos (ordem alfabética)</h3>
                 <div id="listaProdutos">
@@ -46,7 +46,6 @@ verificarAutenticacao();
                 </div>
             </div>
             
-            <!-- Formulário de Movimentação -->
             <div>
                 <div class="card">
                     <h3 class="card-title">Registrar Movimentação</h3>
@@ -55,6 +54,7 @@ verificarAutenticacao();
                     <div id="formMovimentacao" class="form-movimentacao">
                         <form id="formMov">
                             <input type="hidden" id="produtoSelecionadoId" name="id_produto">
+                            <input type="hidden" id="produtoSelecionadoValorUnitario" name="valor_unitario">
                             
                             <div class="form-group">
                                 <label class="form-label">Produto Selecionado</label>
@@ -87,15 +87,20 @@ verificarAutenticacao();
                                 <label for="quantidade" class="form-label">Quantidade *</label>
                                 <input type="number" id="quantidade" name="quantidade" class="form-control" required min="1">
                             </div>
-                            
+
+                            <div class="form-group">
+                                <label for="valor_total_display" class="form-label">Valor Total (R$)</label>
+                                <input type="text" id="valor_total_display" class="form-control" readonly value="R$ 0,00">
+                                <input type="hidden" id="valorTotalInput" name="valor_total"> 
+                            </div>
                             <div class="form-group">
                                 <label for="data_movimentacao" class="form-label">Data da Movimentação *</label>
                                 <input type="date" id="data_movimentacao" name="data_movimentacao" class="form-control" required>
                             </div>
                             
                             <div class="form-group">
-                                <label for="observacao" class="form-label">Observação</label>
-                                <textarea id="observacao" name="observacao" class="form-control" rows="3" placeholder="Observações sobre a movimentação..."></textarea>
+                                <label for="observacao" class="form-label">Observação (Detalhes da Movimentação)</label>
+                                <textarea id="observacao" name="observacao" class="form-control" rows="3" placeholder="Ex: Compra do fornecedor X, Uso na obra Y..."></textarea>
                             </div>
                             
                             <button type="submit" class="btn btn-primary" style="width: 100%;">Registrar Movimentação</button>
@@ -103,15 +108,15 @@ verificarAutenticacao();
                     </div>
                 </div>
                 
-                <!-- Informações do Produto Selecionado -->
                 <div id="infoProduto" class="card" style="display: none; margin-top: 1.5rem;">
                     <h3 class="card-title">Informações do Produto</h3>
-                    <div id="infoConteudo"></div>
+                    <div id="infoConteudo">
+                        </div>
+                    <p style="margin-top: 0.5rem;">Valor Unitário: <span id="infoValorUnitario" style="font-weight: 600;"></span></p>
                 </div>
             </div>
         </div>
         
-        <!-- Histórico de Movimentações -->
         <div class="card" style="margin-top: 1.5rem;">
             <h3 class="card-title">Histórico de Movimentações Recentes</h3>
             <div id="historicoMovimentacoes">

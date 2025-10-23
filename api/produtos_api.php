@@ -1,19 +1,35 @@
 <?php
-/**
- * API de Gerenciamento de Produtos
- * ENTREGA 6 - CRUD de Produtos
- */
-
 header('Content-Type: application/json; charset=utf-8');
 session_start();
 
 require_once '../config/database.php';
 require_once '../includes/auth.php';
 
-// Verifica autenticação
 if (!estaLogado()) {
     echo json_encode(['sucesso' => false, 'mensagem' => 'Não autenticado']);
     exit();
+}
+
+/**
+ * Versão Final (Robusta): Converte valores do padrão brasileiro (vírgula decimal) 
+ * para o padrão SQL (ponto decimal).
+* * @param string $valor O valor vindo do formulário (ex: "R$ 1.234,56" ou "300.00").
+ * @return float O valor formatado (ex: 1234.56 ou 0.30).
+ */
+function formatarValorParaBanco($valor) {
+    // 1. Remove TUDO que não for dígito, ponto ou vírgula (por segurança)
+    $valorLimpo = preg_replace('/[^\d\.,]/', '', $valor);
+    
+    // 2. Se a string contém VÍRGULA, remove o ponto de milhar e troca vírgula por ponto decimal.
+    // Isso cobre todos os campos (tamanho, peso, valor_unitario)
+    if (strpos($valorLimpo, ',') !== false) {
+        $valorLimpo = str_replace('.', '', $valorLimpo); // Remove pontos de milhar
+        $valorLimpo = str_replace(',', '.', $valorLimpo); // Troca vírgula por ponto decimal
+    }
+    
+    // 3. Garante que é um float válido, ou 0.00.
+    // O floatval() ou casting para float é ESSENCIAL para evitar a multiplicação por 100.
+    return (float)$valorLimpo;
 }
 
 $conn = getConnection();
@@ -29,14 +45,29 @@ switch ($acao) {
         break;
     
     case 'criar':
+        if (getNivelAcesso() !== 'admin' && getNivelAcesso() !== 'estoquista') {
+            http_response_code(403);
+            echo json_encode(['sucesso' => false, 'mensagem' => 'Acesso negado para esta operação.']);
+            break;
+        }
         criarProduto($conn);
         break;
     
     case 'editar':
+        if (getNivelAcesso() !== 'admin' && getNivelAcesso() !== 'estoquista') {
+            http_response_code(403);
+            echo json_encode(['sucesso' => false, 'mensagem' => 'Acesso negado para esta operação.']);
+            break;
+        }
         editarProduto($conn);
         break;
     
     case 'excluir':
+        if (getNivelAcesso() !== 'admin') {
+            http_response_code(403);
+            echo json_encode(['sucesso' => false, 'mensagem' => 'Acesso negado: Apenas administradores podem excluir.']);
+            break;
+        }
         excluirProduto($conn);
         break;
     
@@ -46,19 +77,17 @@ switch ($acao) {
 
 $conn->close();
 
-/**
- * Lista todos os produtos ou filtra por termo de busca
- */
 function listarProdutos($conn) {
+    $sqlSelect = "id_produto, nome, descricao, categoria, material, tamanho, peso, quantidade_estoque, estoque_minimo, valor_unitario";
     $busca = $_GET['busca'] ?? '';
     
     if (!empty($busca)) {
-        $sql = "SELECT * FROM produtos WHERE nome LIKE ? OR categoria LIKE ? OR material LIKE ? ORDER BY nome";
+        $sql = "SELECT {$sqlSelect} FROM produtos WHERE nome LIKE ? OR categoria LIKE ? OR material LIKE ? ORDER BY nome";
         $termoBusca = "%{$busca}%";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param('sss', $termoBusca, $termoBusca, $termoBusca);
     } else {
-        $sql = "SELECT * FROM produtos ORDER BY nome";
+        $sql = "SELECT {$sqlSelect} FROM produtos ORDER BY nome";
         $stmt = $conn->prepare($sql);
     }
     
@@ -74,13 +103,11 @@ function listarProdutos($conn) {
     $stmt->close();
 }
 
-/**
- * Busca um produto específico por ID
- */
 function buscarProduto($conn) {
+    $sqlSelect = "id_produto, nome, descricao, categoria, material, tamanho, peso, quantidade_estoque, estoque_minimo, valor_unitario";
     $id = $_GET['id'] ?? 0;
     
-    $sql = "SELECT * FROM produtos WHERE id_produto = ?";
+    $sql = "SELECT {$sqlSelect} FROM produtos WHERE id_produto = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param('i', $id);
     $stmt->execute();
@@ -96,11 +123,8 @@ function buscarProduto($conn) {
     $stmt->close();
 }
 
-/**
- * Cria um novo produto
- */
 function criarProduto($conn) {
-    // Validação dos dados
+    
     $erros = validarDadosProduto($_POST);
     if (!empty($erros)) {
         echo json_encode(['sucesso' => false, 'mensagem' => implode(', ', $erros)]);
@@ -111,16 +135,21 @@ function criarProduto($conn) {
     $descricao = trim($_POST['descricao'] ?? '');
     $categoria = $_POST['categoria'];
     $material = trim($_POST['material'] ?? '');
-    $tamanho = !empty($_POST['tamanho']) ? floatval($_POST['tamanho']) : null;
-    $peso = !empty($_POST['peso']) ? floatval($_POST['peso']) : null;
+    
+    // Usando a função de formatação para campos decimais
+    $tamanho = formatarValorParaBanco($_POST['tamanho'] ?? '0,00'); 
+    $peso = formatarValorParaBanco($_POST['peso'] ?? '0,00');
     $quantidade_estoque = intval($_POST['quantidade_estoque']);
     $estoque_minimo = intval($_POST['estoque_minimo']);
+    $valor_unitario = formatarValorParaBanco($_POST['valor_unitario'] ?? '0,00');
     
-    $sql = "INSERT INTO produtos (nome, descricao, categoria, material, tamanho, peso, quantidade_estoque, estoque_minimo) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    // INSERT com todos os 9 campos
+    $sql = "INSERT INTO produtos (nome, descricao, categoria, material, tamanho, peso, quantidade_estoque, estoque_minimo, valor_unitario) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     
+    // bind_param: ssssddiid (strings, doubles, integers, integer, double)
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param('ssssddii', $nome, $descricao, $categoria, $material, $tamanho, $peso, $quantidade_estoque, $estoque_minimo);
+    $stmt->bind_param('ssssddiid', $nome, $descricao, $categoria, $material, $tamanho, $peso, $quantidade_estoque, $estoque_minimo, $valor_unitario);
     
     if ($stmt->execute()) {
         echo json_encode(['sucesso' => true, 'mensagem' => 'Produto cadastrado com sucesso!', 'id' => $conn->insert_id]);
@@ -131,9 +160,6 @@ function criarProduto($conn) {
     $stmt->close();
 }
 
-/**
- * Edita um produto existente
- */
 function editarProduto($conn) {
     $id_produto = intval($_POST['id_produto'] ?? 0);
     
@@ -141,8 +167,7 @@ function editarProduto($conn) {
         echo json_encode(['sucesso' => false, 'mensagem' => 'ID do produto inválido']);
         return;
     }
-    
-    // Validação dos dados
+
     $erros = validarDadosProduto($_POST);
     if (!empty($erros)) {
         echo json_encode(['sucesso' => false, 'mensagem' => implode(', ', $erros)]);
@@ -153,30 +178,53 @@ function editarProduto($conn) {
     $descricao = trim($_POST['descricao'] ?? '');
     $categoria = $_POST['categoria'];
     $material = trim($_POST['material'] ?? '');
-    $tamanho = !empty($_POST['tamanho']) ? floatval($_POST['tamanho']) : null;
-    $peso = !empty($_POST['peso']) ? floatval($_POST['peso']) : null;
-    $quantidade_estoque = intval($_POST['quantidade_estoque']);
+    
+    // CORRIGIDO: Variáveis decimais tratadas pela função
+    $tamanho = formatarValorParaBanco($_POST['tamanho'] ?? '0,00'); 
+    $peso = formatarValorParaBanco($_POST['peso'] ?? '0,00');
+    $quantidade_estoque = intval($_POST['quantidade_estoque']); 
     $estoque_minimo = intval($_POST['estoque_minimo']);
+    $valor_unitario = formatarValorParaBanco($_POST['valor_unitario'] ?? '0,00');
     
-    $sql = "UPDATE produtos SET nome = ?, descricao = ?, categoria = ?, material = ?, 
-            tamanho = ?, peso = ?, quantidade_estoque = ?, estoque_minimo = ? 
-            WHERE id_produto = ?";
+    // Query com 9 campos para UPDATE + WHERE
+    $sqlUpdate = "UPDATE produtos SET 
+                      nome=?, 
+                      descricao=?, 
+                      categoria=?, 
+                      material=?, 
+                      tamanho=?, 
+                      peso=?, 
+                      quantidade_estoque=?, 
+                      estoque_minimo=?, 
+                      valor_unitario=? 
+                  WHERE id_produto=?";
     
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param('ssssddiii', $nome, $descricao, $categoria, $material, $tamanho, $peso, $quantidade_estoque, $estoque_minimo, $id_produto);
+    // bind_param: 'ssssddiidi' (10 tipos no total)
+    $stmt = $conn->prepare($sqlUpdate);
+    
+    $stmt->bind_param('ssssddiidi', 
+        $nome, 
+        $descricao, 
+        $categoria, 
+        $material, 
+        $tamanho, 
+        $peso, 
+        $quantidade_estoque, 
+        $estoque_minimo, 
+        $valor_unitario, // O valor unitário agora é um float tratado
+        $id_produto
+    );
     
     if ($stmt->execute()) {
         echo json_encode(['sucesso' => true, 'mensagem' => 'Produto atualizado com sucesso!']);
     } else {
+        error_log("SQL Error: " . $stmt->error); 
         echo json_encode(['sucesso' => false, 'mensagem' => 'Erro ao atualizar produto: ' . $stmt->error]);
     }
     
     $stmt->close();
 }
 
-/**
- * Exclui um produto
- */
 function excluirProduto($conn) {
     $id_produto = intval($_POST['id_produto'] ?? 0);
     
@@ -184,8 +232,7 @@ function excluirProduto($conn) {
         echo json_encode(['sucesso' => false, 'mensagem' => 'ID do produto inválido']);
         return;
     }
-    
-    // Verifica se há movimentações associadas
+
     $sqlCheck = "SELECT COUNT(*) as total FROM movimentacoes WHERE id_produto = ?";
     $stmtCheck = $conn->prepare($sqlCheck);
     $stmtCheck->bind_param('i', $id_produto);
@@ -213,9 +260,6 @@ function excluirProduto($conn) {
     $stmt->close();
 }
 
-/**
- * Valida os dados do produto
- */
 function validarDadosProduto($dados) {
     $erros = [];
     
@@ -237,12 +281,21 @@ function validarDadosProduto($dados) {
         $erros[] = 'Estoque mínimo deve ser maior que zero';
     }
     
-    if (!empty($dados['tamanho']) && floatval($dados['tamanho']) < 0) {
+    // Validação usando a função de formatação correta
+    $tamanho = formatarValorParaBanco($dados['tamanho'] ?? '0,00');
+    if ($tamanho < 0) {
         $erros[] = 'Tamanho não pode ser negativo';
     }
     
-    if (!empty($dados['peso']) && floatval($dados['peso']) < 0) {
+    $peso = formatarValorParaBanco($dados['peso'] ?? '0,00');
+    if ($peso < 0) {
         $erros[] = 'Peso não pode ser negativo';
+    }
+
+    // Validação de Valor Unitário
+    $valor_unitario = formatarValorParaBanco($dados['valor_unitario'] ?? '0,00');
+    if ($valor_unitario <= 0) { // Alterado para ser maior que zero
+        $erros[] = 'Valor unitário deve ser maior que zero';
     }
     
     return $erros;

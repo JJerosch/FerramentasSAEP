@@ -1,6 +1,6 @@
 <?php
 /**
- * ENTREGA 6 - Interface de Cadastro de Produto
+ * ENTREGA 6 - Interface de Cadastro de Produto (MODIFICADA PARA CUSTOS)
  */
 
 require_once '../includes/auth.php';
@@ -18,12 +18,14 @@ verificarAutenticacao();
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
-    <!-- Cabeçalho -->
     <div class="header">
         <div class="header-content">
             <h1>Sistema de Gestão de Estoque</h1>
             <div class="user-info">
-                <span class="user-name"> <?php echo htmlspecialchars(getUsuarioNome()); ?></span>
+                <div class="user-details">
+                    <span class="user-name"> <?php echo htmlspecialchars(getUsuarioNome()); ?> : </span>
+                    <span class="user-role">(<?php echo strtoupper(htmlspecialchars(getNivelAcesso())); ?>)</span>
+                </div>
                 <a href="../api/logout.php" class="btn btn-secondary btn-sm">Sair</a>
             </div>
         </div>
@@ -35,10 +37,8 @@ verificarAutenticacao();
             <a href="dashboard.php" class="btn btn-secondary">← Voltar ao Dashboard</a>
         </div>
         
-        <!-- Mensagens de Feedback -->
         <div id="mensagemFeedback"></div>
         
-        <!-- Formulário de Cadastro/Edição -->
         <div class="card">
             <h3 class="card-title" id="tituloFormulario">Novo Produto</h3>
             <form id="formProduto">
@@ -70,17 +70,21 @@ verificarAutenticacao();
                     
                     <div class="form-group">
                         <label for="tamanho" class="form-label">Tamanho (cm)</label>
-                        <input type="number" id="tamanho" name="tamanho" class="form-control" step="0.01" min="0">
+                        <input type="text" id="tamanho" name="tamanho" class="form-control">                        
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="peso" class="form-label">Peso (kg)</label>
-                        <input type="number" id="peso" name="peso" class="form-control" step="0.01" min="0">
+                        <input type="text" id="peso" name="peso" class="form-control">                      
                     </div>
                     
                     <div class="form-group">
+                        <label for="valor_unitario" class="form-label">Valor Unitário (R$)</label>
+                        <input type="text" id="valor_unitario" name="valor_unitario" class="form-control" placeholder="0,00" value="0,00">
+                    </div>
+                    <div class="form-group">
                         <label for="quantidade_estoque" class="form-label">Quantidade em Estoque *</label>
-                        <input type="number" id="quantidade_estoque" name="quantidade_estoque" class="form-control" required min="0" value="0">
+                        <input type="number" id="quantidade_estoque" name="quantidade_estoque" class="form-control" required min="0" value="0" readonly>
                     </div>
                     
                     <div class="form-group">
@@ -101,7 +105,6 @@ verificarAutenticacao();
             </form>
         </div>
         
-        <!-- Busca e Listagem -->
         <div class="card">
             <div class="d-flex justify-between align-center mb-2">
                 <h3 class="card-title">Produtos Cadastrados</h3>
@@ -117,8 +120,7 @@ verificarAutenticacao();
                             <th>ID</th>
                             <th>Nome</th>
                             <th>Categoria</th>
-                            <th>Material</th>
-                            <th>Estoque</th>
+                            <th>Valor Unitário</th> <th>Estoque</th>
                             <th>Estoque Mín.</th>
                             <th>Status</th>
                             <th>Ações</th>

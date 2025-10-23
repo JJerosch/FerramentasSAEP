@@ -594,4 +594,26 @@ tbody tr:hover {
     margin-bottom: 1rem;
 }
 
-/* ... (continuação do código anterior) ... */
+/* --- COMPLEMENTO: Estilo para o Cabeçalho (Dashboard) --- */
+
+.user-info {
+    display: flex; /* Garante que o nome e o botão Sair fiquem lado a lado */
+    align-items: center;
+    gap: 10px; /* Espaço entre o nome/nível e o botão Sair */
+}
+
+.user-details {
+    display: flex; /* Garante que o nome e o nível de acesso fiquem lado a lado */
+    align-items: center;
+}
+
+.user-name {
+    font-weight: 600;
+    color: var(--text-color); /* Azul Marinho */
+}
+
+.user-role {
+    font-size: 0.8rem;
+    color: var(--text-light-color); /* Cinza Claro para o papel */
+    margin-left: 5px;
+}

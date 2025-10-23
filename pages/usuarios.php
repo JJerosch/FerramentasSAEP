@@ -1,17 +1,24 @@
 <?php
 /**
- * ENTREGA 8 - Interface de Cadastro e Gestão de Usuários
+ * Interface de Cadastro e Gestão de Usuários
  */
 
 require_once '../includes/auth.php';
 require_once '../config/database.php';
 
-// Verifica autenticação
+// 1. Verifica autenticação (todos devem estar logados)
 verificarAutenticacao();
 
-// NOTA: A lógica para buscar/salvar usuários será implementada no JavaScript (usuarios.js)
-// e na API (usuarios_api.php, que você precisará criar).
+// 2. RESTRICÃO DE ACESSO: Se o usuário NÃO for 'admin', ele é redirecionado.
+if (getNivelAcesso() !== 'admin') {
+    // Redireciona de volta para a dashboard
+    header('Location: dashboard.php'); 
+    exit();
+}
 
+// O restante do código PHP e HTML só será executado para admins
+
+// ... (Restante do seu código PHP, caso haja)
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -22,16 +29,18 @@ verificarAutenticacao();
     <link rel="stylesheet" href="../assets/css/style.css">
     </head>
 <body>
-    <div class="header">
+<div class="header">
         <div class="header-content">
             <h1>Sistema de Gestão de Estoque</h1>
             <div class="user-info">
-                <span class="user-name"> <?php echo htmlspecialchars(getUsuarioNome()); ?></span>
+                <div class="user-details">
+                    <span class="user-name"> <?php echo htmlspecialchars(getUsuarioNome()); ?> : </span>
+                    <span class="user-role"> <?php echo strtoupper(htmlspecialchars(getNivelAcesso())); ?></span>
+                </div>
                 <a href="../api/logout.php" class="btn btn-secondary btn-sm">Sair</a>
             </div>
         </div>
     </div>
-    
     <div class="container">
         <div class="d-flex justify-between align-center mb-3">
             <h2>Cadastro de Usuários</h2>
