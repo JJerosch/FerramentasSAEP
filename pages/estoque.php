@@ -69,14 +69,14 @@ verificarAutenticacao();
                                     <div class="radio-option">
                                         <input type="radio" id="tipoEntrada" name="tipo_movimentacao" value="entrada" required>
                                         <label for="tipoEntrada">
-                                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📥</div>
+                                            <div style="font-size: 2rem; margin-bottom: 0.5rem;"></div>
                                             <div>Entrada</div>
                                         </label>
                                     </div>
                                     <div class="radio-option">
                                         <input type="radio" id="tipoSaida" name="tipo_movimentacao" value="saida" required>
                                         <label for="tipoSaida">
-                                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📤</div>
+                                            <div style="font-size: 2rem; margin-bottom: 0.5rem;"></div>
                                             <div>Saída</div>
                                         </label>
                                     </div>

@@ -567,3 +567,31 @@ tbody tr:hover {
     color: var(--text-light); 
     font-size: 0.875rem;
 }
+
+/* ... dentro do seu style.css, na parte de Complemento para Dashboard ... */
+
+/* ... (continuação do código anterior) ... */
+
+/* Destaque do card de Alerta (Estoque Baixo) */
+.stat-card.warning {
+    border-left: 4px solid var(--primary-color); /* Borda Laranja */
+    /* MUDANÇA: Sombra sutil em laranja para o card de alerta */
+    box-shadow: 0 4px 6px rgba(247, 148, 29, 0.1); 
+}
+.stat-card.warning .stat-icon {
+    color: var(--primary-color); /* Ícone em laranja */
+}
+
+/* NOVO: Ícone para o card de Usuários - usa a cor de texto (Azul Marinho) */
+.stat-card .icon-secondary {
+    color: var(--text-color); 
+}
+
+/* 2. Estilização dos Cards de Navegação (nav-card) */
+.nav-card .nav-icon {
+    font-size: 3rem;
+    color: var(--primary-color); /* Ícone em Laranja */
+    margin-bottom: 1rem;
+}
+
+/* ... (continuação do código anterior) ... */

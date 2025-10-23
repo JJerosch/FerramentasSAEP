@@ -27,6 +27,12 @@ $sqlMovimentacoes = "SELECT COUNT(*) as total FROM movimentacoes WHERE data_movi
 $resultMovimentacoes = $conn->query($sqlMovimentacoes);
 $movimentacoesRecentes = $resultMovimentacoes->fetch_assoc()['total'];
 
+// NOVO: Total de Usuários Cadastrados
+// Assumindo que você tem uma tabela 'usuarios'
+$sqlUsuarios = "SELECT COUNT(*) as total FROM usuarios";
+$resultUsuarios = $conn->query($sqlUsuarios);
+$totalUsuarios = $resultUsuarios->fetch_assoc()['total'];
+
 // Produtos com estoque baixo (detalhes)
 $sqlProdutosBaixos = "SELECT nome, quantidade_estoque, estoque_minimo FROM produtos WHERE quantidade_estoque <= estoque_minimo ORDER BY quantidade_estoque ASC LIMIT 5";
 $resultProdutosBaixos = $conn->query($sqlProdutosBaixos);
@@ -40,7 +46,7 @@ $conn->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Sistema de Gestão de Estoque</title>
     <link rel="stylesheet" href="../assets/css/style.css">
-    </head>
+</head>
 <body>
     <div class="header">
         <div class="header-content">
@@ -58,19 +64,16 @@ $conn->close();
         
         <div class="stats-grid">
             <div class="stat-card d-flex flex-col align-center text-center">
-                <div class="stat-icon icon-primary"></div>
                 <div class="stat-value"><?php echo $totalProdutos; ?></div>
                 <div class="stat-label">Total de Produtos</div>
             </div>
             
             <div class="stat-card warning d-flex flex-col align-center text-center">
-                <div class="stat-icon icon-warning"></div>
                 <div class="stat-value"><?php echo $produtosEstoqueBaixo; ?></div>
                 <div class="stat-label">Produtos com Estoque Baixo</div>
             </div>
             
             <div class="stat-card d-flex flex-col align-center text-center">
-                <div class="stat-icon icon-primary"></div>
                 <div class="stat-value"><?php echo $movimentacoesRecentes; ?></div>
                 <div class="stat-label">Movimentações (30 dias)</div>
             </div>
@@ -110,7 +113,7 @@ $conn->close();
         </div>
         <?php endif; ?>
         
-        <h3 class="mt-3 mb-2">Acesso Rápido</h3>
+        <h3 class="mt-3 mb-2">Gestão de Itens</h3>
         <div class="nav-grid">
             <a href="produtos.php" class="nav-card">
                 <div class="nav-icon"></div>
@@ -123,6 +126,22 @@ $conn->close();
                 <h3>Gestão de Estoque</h3>
                 <p class="text-light-p">Controlar entradas e saídas</p>
             </a>
+        </div>
+
+        <h3 class="mt-3 mb-2">Gestão de Usuários</h3>
+        <div class="nav-grid">
+            <a href="usuarios.php" class="nav-card">
+                <div class="nav-icon" style="color: var(--text-color);"></div>
+                <h3>Cadastro de Usuários</h3>
+                <p class="text-light-p">Adicionar e gerenciar contas</p>
+            </a>
+            
+            <div class="nav-card" style="cursor: default;">
+                <div class="nav-icon" style="color: var(--text-color);"></div>
+                <h3>Usuários Ativos</h3>
+                <p class="text-light-p">Total de usuários no sistema</p>
+                <div style="font-size: 2rem; font-weight: 700; color: var(--text-color); margin-top: 0.5rem;"><?php echo $totalUsuarios; ?></div>
+            </div>
         </div>
     </div>
 </body>

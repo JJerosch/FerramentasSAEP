@@ -106,7 +106,7 @@ verificarAutenticacao();
             <div class="d-flex justify-between align-center mb-2">
                 <h3 class="card-title">Produtos Cadastrados</h3>
                 <div style="width: 300px;">
-                    <input type="text" id="campoBusca" class="form-control" placeholder="🔍 Buscar produto...">
+                    <input type="text" id="campoBusca" class="form-control" placeholder="Buscar produto...">
                 </div>
             </div>
             
