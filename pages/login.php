@@ -20,61 +20,14 @@ unset($_SESSION['erro_login']);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Sistema de Gestão de Estoque</title>
     <link rel="stylesheet" href="../assets/css/style.css">
-    <style>
-        .login-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .login-card {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 1rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-        
-        .login-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        
-        .login-header h1 {
-            color: #1e293b;
-            font-size: 1.875rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .login-header p {
-            color: #64748b;
-            font-size: 0.875rem;
-        }
-        
-        .logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            font-size: 2.5rem;
-            color: white;
-        }
-    </style>
 </head>
 <body>
     <div class="login-container">
         <div class="login-card">
             <div class="login-header">
-                <div class="logo">🔧</div>
-                <h1>Sistema de Estoque</h1>
-                <p>Gestão de Ferramentas e Equipamentos</p>
+                <div class="logo"><img src="../assets/images/1159628_hammer_icon.png" width="100px"></div>
+                <h1>SAEP TOOLS</h1>
+                <p>Sistema de Gestão de Ferramentas e Equipamentos</p>
             </div>
             
             <?php if ($erro): ?>
@@ -114,12 +67,6 @@ unset($_SESSION['erro_login']);
                     Entrar
                 </button>
             </form>
-            
-            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0; text-align: center; color: #64748b; font-size: 0.813rem;">
-                <p><strong>Usuários de teste:</strong></p>
-                <p>Email: joao.silva@empresa.com | Senha: 123456</p>
-                <p>Email: maria.santos@empresa.com | Senha: 123456</p>
-            </div>
         </div>
     </div>
     

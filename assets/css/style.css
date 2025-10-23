@@ -1,5 +1,6 @@
 /* ============================================
    Sistema de Gestão de Estoque - Estilos Globais
+   NOVO TEMA (Branco, Laranja, Azul Marinho)
    ============================================ */
 
 /* Reset e configurações básicas */
@@ -10,17 +11,23 @@
 }
 
 :root {
-    --primary-color: #2563eb;
-    --primary-dark: #1e40af;
-    --secondary-color: #64748b;
-    --success-color: #10b981;
-    --danger-color: #ef4444;
-    --warning-color: #f59e0b;
-    --bg-color: #f8fafc;
-    --card-bg: #ffffff;
-    --text-color: #1e293b;
-    --text-light: #64748b;
-    --border-color: #e2e8f0;
+    /* MUDANÇA: Cores atualizadas para o novo tema */
+    --primary-color: #F7941D;  /* Laranja principal (para botões e destaques) */
+    --primary-dark: #E68A00;   /* Laranja mais escuro (para hover) */
+    --secondary-color: #64748b;  /* Cinza azulado (mantido para botões secundários) */
+    
+    --success-color: #10b981;  /* Semântico: Verde */
+    --danger-color: #ef4444;   /* Semântico: Vermelho */
+    --warning-color: #f59e0b;  /* Semântico: Amarelo/Laranja */
+
+    --bg-color: #FFFFFF;       /* MUDANÇA: Fundo principal agora é BRANCO */
+    --card-bg: #FFFFFF;        /* Fundo dos cards é BRANCO */
+
+    --text-color: #0A2342;     /* MUDANÇA: Cor de texto principal (Azul Marinho) */
+    --text-light: #64748b;     /* Cor de texto secundária (Cinza) */
+    
+    --border-color: #e2e8f0;   /* Cor de borda (Cinza claro) */
+    
     --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
@@ -28,8 +35,8 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
+    background-color: var(--bg-color); /* Agora é branco */
+    color: var(--text-color); /* Agora é azul marinho */
     line-height: 1.6;
 }
 
@@ -58,7 +65,8 @@ body {
 }
 
 .header h1 {
-    color: var(--primary-color);
+    /* MUDANÇA: Título principal do header em azul, não laranja */
+    color: var(--text-color); 
     font-size: 1.5rem;
 }
 
@@ -85,6 +93,7 @@ body {
     display: inline-block;
 }
 
+/* MUDANÇA: Botão primário agora usa as variáveis laranja */
 .btn-primary {
     background-color: var(--primary-color);
     color: white;
@@ -133,13 +142,15 @@ body {
     box-shadow: var(--shadow);
     padding: 1.5rem;
     margin-bottom: 1.5rem;
+    /* MUDANÇA: Adiciona uma borda sutil para destacar o card do fundo branco */
+    border: 1px solid var(--border-color);
 }
 
 .card-title {
     font-size: 1.25rem;
     font-weight: 600;
     margin-bottom: 1rem;
-    color: var(--text-color);
+    color: var(--text-color); /* Já usa a variável correta (azul marinho) */
 }
 
 /* Formulários */
@@ -165,8 +176,9 @@ body {
 
 .form-control:focus {
     outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    border-color: var(--primary-color); /* MUDANÇA: Foco agora é laranja */
+    /* MUDANÇA: Sombra do foco agora é laranja */
+    box-shadow: 0 0 0 3px rgba(247, 148, 29, 0.2); 
 }
 
 select.form-control {
@@ -185,7 +197,8 @@ table {
 }
 
 thead {
-    background-color: var(--bg-color);
+    /* MUDANÇA: Fundo do cabeçalho da tabela com cinza leve, já que o body é branco */
+    background-color: #f8fafc;
 }
 
 th {
@@ -202,10 +215,10 @@ td {
 }
 
 tbody tr:hover {
-    background-color: var(--bg-color);
+    background-color: #f8fafc; /* MANTIDO: Efeito hover cinza claro */
 }
 
-/* Alertas */
+/* Alertas (Cores semânticas mantidas) */
 .alert {
     padding: 1rem;
     border-radius: 0.375rem;
@@ -236,7 +249,7 @@ tbody tr:hover {
     border: 1px solid #93c5fd;
 }
 
-/* Badge de estoque */
+/* Badge de estoque (Cores semânticas mantidas) */
 .badge {
     display: inline-block;
     padding: 0.25rem 0.5rem;
@@ -278,6 +291,7 @@ tbody tr:hover {
     cursor: pointer;
     text-decoration: none;
     color: var(--text-color);
+    border: 1px solid var(--border-color); /* MUDANÇA: Borda sutil */
 }
 
 .nav-card:hover {
@@ -287,7 +301,7 @@ tbody tr:hover {
 
 .nav-card i {
     font-size: 3rem;
-    color: var(--primary-color);
+    color: var(--primary-color); /* MUDANÇA: Ícones agora são laranja */
     margin-bottom: 1rem;
 }
 
@@ -299,26 +313,15 @@ tbody tr:hover {
 .text-center {
     text-align: center;
 }
-
 .mt-1 { margin-top: 0.5rem; }
 .mt-2 { margin-top: 1rem; }
 .mt-3 { margin-top: 1.5rem; }
 .mb-1 { margin-bottom: 0.5rem; }
 .mb-2 { margin-bottom: 1rem; }
 .mb-3 { margin-bottom: 1.5rem; }
-
-.d-flex {
-    display: flex;
-}
-
-.justify-between {
-    justify-content: space-between;
-}
-
-.align-center {
-    align-items: center;
-}
-
+.d-flex { display: flex; }
+.justify-between { justify-content: space-between; }
+.align-center { align-items: center; }
 .gap-1 { gap: 0.5rem; }
 .gap-2 { gap: 1rem; }
 
@@ -327,17 +330,240 @@ tbody tr:hover {
     .container {
         padding: 10px;
     }
-    
+
     .header-content {
         flex-direction: column;
         gap: 1rem;
     }
-    
+
     table {
         font-size: 0.813rem;
     }
-    
-    th, td {
+
+    th,
+    td {
         padding: 0.5rem;
     }
+}
+
+.produto-item {
+    padding: 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.produto-item:hover {
+    border-color: var(--primary-color); /* MUDANÇA: Hover laranja */
+    background-color: #fefaf5; /* Laranja bem clarinho */
+}
+
+.produto-item.selecionado {
+    border-color: var(--primary-color); /* MUDANÇA: Selecionado laranja */
+    background-color: #FFF3E0; /* MUDANÇA: Fundo laranja claro */
+}
+
+.produto-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.produto-nome {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.produto-categoria {
+    color: var(--text-light);
+    font-size: 0.875rem;
+}
+
+.produto-estoque {
+    text-align: right;
+}
+
+.form-movimentacao {
+    display: none;
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    background-color: #f8fafc; /* Cinza claro mantido para destacar o form */
+    border-radius: 0.5rem;
+}
+
+.form-movimentacao.ativo {
+    display: block;
+}
+
+.radio-group {
+    display: flex;
+    gap: 1rem;
+}
+
+.radio-option {
+    flex: 1;
+}
+
+.radio-option input[type="radio"] {
+    display: none;
+}
+
+.radio-option label {
+    display: block;
+    padding: 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 0.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.radio-option input[type="radio"]:checked+label {
+    border-color: var(--primary-color); /* MUDANÇA: Seleção laranja */
+    background-color: #FFF3E0; /* MUDANÇA: Fundo laranja claro */
+    font-weight: 600;
+}
+
+/* Histórico mantido com cores semânticas */
+.historico-item {
+    padding: 1rem;
+    border-left: 4px solid #e2e8f0;
+    margin-bottom: 0.5rem;
+}
+
+.historico-item.entrada {
+    border-left-color: #10b981;
+    background-color: #d1fae5;
+}
+
+.historico-item.saida {
+    border-left-color: #ef4444;
+    background-color: #fee2e2;
+}
+
+/* === MUDANÇAS DRÁSTICAS NA TELA DE LOGIN === */
+
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* MUDANÇA: Fim do gradiente, agora usa o fundo branco padrão */
+    background: var(--bg-color); 
+}
+
+.login-card {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 1rem;
+    box-shadow: var(--shadow-lg); /* Sombra mais forte para destacar no fundo branco */
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid var(--border-color); /* Borda sutil */
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-header h1 {
+    color: var(--text-color); /* MUDANÇA: Usa cor de texto principal */
+    font-size: 1.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.login-header p {
+    color: var(--text-light); /* MUDANÇA: Usa cor de texto secundária */
+    font-size: 0.875rem;
+}
+
+.logo {
+    width: 80px;
+    height: 80px;
+    /* MUDANÇA: Gradiente removido, agora usa a cor primária (Laranja) */
+    background: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 2.5rem;
+    color: white;
+}
+
+/* ============================================
+   Complemento para Dashboard e Utilitários de Layout
+   ============================================ */
+
+/* Alinhamento de conteúdo nos cards (usado na Dashboard) */
+.d-flex.flex-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.align-center {
+    align-items: center;
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* 1. Estilização dos cartões de Estatísticas (Dashboard) */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    /* Herda background, borda e shadow do .card */
+    background: var(--card-bg); 
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color); /* Borda sutil */
+    
+    padding: 1.5rem;
+    transition: all 0.2s;
+}
+
+/* Ícones dos Cards de Estatísticas */
+.stat-card .stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+.stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-color); /* Azul Marinho */
+}
+.stat-card .stat-label {
+    color: var(--text-light); /* Cinza claro */
+    font-size: 0.875rem;
+}
+
+/* Destaque do card de Alerta (Estoque Baixo) */
+.stat-card.warning {
+    border-left: 4px solid var(--primary-color); /* Borda Laranja */
+    /* MUDANÇA: Sombra sutil em laranja para o card de alerta */
+    box-shadow: 0 4px 6px rgba(247, 148, 29, 0.1); 
+}
+.stat-card.warning .stat-icon {
+    color: var(--primary-color); /* Ícone em laranja */
+}
+
+/* 2. Estilização dos Cards de Navegação (nav-card) */
+.nav-card .nav-icon {
+    font-size: 3rem;
+    color: var(--primary-color); /* Ícone em Laranja */
+    margin-bottom: 1rem;
+}
+
+/* Utilitários de texto */
+.text-light-p {
+    color: var(--text-light); 
+    font-size: 0.875rem;
 }

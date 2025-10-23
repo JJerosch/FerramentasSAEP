@@ -54,16 +54,10 @@ $usuario = $result->fetch_assoc();
 // Verifica a senha
 // Nota: Para senhas de teste simples, comparamos diretamente
 // Em produção, use password_verify() com password_hash()
-$senhaValida = false;
+// Verifica a senha (compatível com hash bcrypt e texto simples)
+$senhaBanco = trim($usuario['senha']); // remove espaços extras
+$senhaValida = password_verify($senha, $senhaBanco) || $senha === $senhaBanco;
 
-// Tenta verificar com password_verify (hash bcrypt)
-if (password_verify($senha, $usuario['senha'])) {
-    $senhaValida = true;
-} 
-// Fallback para senhas em texto simples (apenas para ambiente de teste)
-elseif ($senha === $usuario['senha']) {
-    $senhaValida = true;
-}
 
 if (!$senhaValida) {
     $_SESSION['erro_login'] = 'E-mail ou senha incorretos.';

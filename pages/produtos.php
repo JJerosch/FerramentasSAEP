@@ -21,9 +21,9 @@ verificarAutenticacao();
     <!-- Cabeçalho -->
     <div class="header">
         <div class="header-content">
-            <h1>🔧 Sistema de Gestão de Estoque</h1>
+            <h1>Sistema de Gestão de Estoque</h1>
             <div class="user-info">
-                <span class="user-name">👤 <?php echo htmlspecialchars(getUsuarioNome()); ?></span>
+                <span class="user-name"> <?php echo htmlspecialchars(getUsuarioNome()); ?></span>
                 <a href="../api/logout.php" class="btn btn-secondary btn-sm">Sair</a>
             </div>
         </div>

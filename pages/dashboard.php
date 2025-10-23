@@ -40,49 +40,13 @@ $conn->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Sistema de Gestão de Estoque</title>
     <link rel="stylesheet" href="../assets/css/style.css">
-    <style>
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .stat-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        
-        .stat-card .stat-icon {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .stat-card .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #1e293b;
-        }
-        
-        .stat-card .stat-label {
-            color: #64748b;
-            font-size: 0.875rem;
-        }
-        
-        .stat-card.warning {
-            border-left: 4px solid #f59e0b;
-        }
-    </style>
-</head>
+    </head>
 <body>
-    <!-- Cabeçalho -->
     <div class="header">
         <div class="header-content">
-            <h1>🔧 Sistema de Gestão de Estoque</h1>
+            <h1>Sistema de Gestão de Estoque</h1>
             <div class="user-info">
-                <span class="user-name">👤 <?php echo htmlspecialchars(getUsuarioNome()); ?></span>
+                <span class="user-name"> <?php echo htmlspecialchars(getUsuarioNome()); ?></span>
                 <a href="../api/logout.php" class="btn btn-secondary btn-sm">Sair</a>
             </div>
         </div>
@@ -92,28 +56,26 @@ $conn->close();
         <h2>Dashboard</h2>
         <p class="text-light mb-3">Bem-vindo ao sistema de gestão de estoque</p>
         
-        <!-- Estatísticas -->
         <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">📦</div>
+            <div class="stat-card d-flex flex-col align-center text-center">
+                <div class="stat-icon icon-primary"></div>
                 <div class="stat-value"><?php echo $totalProdutos; ?></div>
                 <div class="stat-label">Total de Produtos</div>
             </div>
             
-            <div class="stat-card warning">
-                <div class="stat-icon">⚠️</div>
+            <div class="stat-card warning d-flex flex-col align-center text-center">
+                <div class="stat-icon icon-warning"></div>
                 <div class="stat-value"><?php echo $produtosEstoqueBaixo; ?></div>
                 <div class="stat-label">Produtos com Estoque Baixo</div>
             </div>
             
-            <div class="stat-card">
-                <div class="stat-icon">📊</div>
+            <div class="stat-card d-flex flex-col align-center text-center">
+                <div class="stat-icon icon-primary"></div>
                 <div class="stat-value"><?php echo $movimentacoesRecentes; ?></div>
                 <div class="stat-label">Movimentações (30 dias)</div>
             </div>
         </div>
         
-        <!-- Alertas de Estoque Baixo -->
         <?php if ($produtosEstoqueBaixo > 0): ?>
         <div class="card">
             <h3 class="card-title">⚠️ Alertas de Estoque Baixo</h3>
@@ -148,19 +110,18 @@ $conn->close();
         </div>
         <?php endif; ?>
         
-        <!-- Menu de Navegação -->
         <h3 class="mt-3 mb-2">Acesso Rápido</h3>
         <div class="nav-grid">
             <a href="produtos.php" class="nav-card">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
+                <div class="nav-icon"></div>
                 <h3>Cadastro de Produtos</h3>
-                <p style="color: #64748b; font-size: 0.875rem;">Gerenciar produtos do estoque</p>
+                <p class="text-light-p">Gerenciar produtos do estoque</p>
             </a>
             
             <a href="estoque.php" class="nav-card">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">📦</div>
+                <div class="nav-icon"></div>
                 <h3>Gestão de Estoque</h3>
-                <p style="color: #64748b; font-size: 0.875rem;">Controlar entradas e saídas</p>
+                <p class="text-light-p">Controlar entradas e saídas</p>
             </a>
         </div>
     </div>
